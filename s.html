@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Student Result Management System</title>
+  <style>
+    :root{--bg:#f6f8fb;--card:#fff;--muted:#6b7280;--accent:#2563eb}
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial; background:var(--bg); margin:0; color:#111}
+    .container{max-width:1100px;margin:32px auto;padding:20px}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    h1{margin:0;font-size:20px}
+    .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(15,23,42,0.06);margin-bottom:16px}
+    .flex{display:flex;gap:12px;align-items:center}
+    .col{flex:1}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input,select,button{padding:8px 10px;border-radius:8px;border:1px solid #e6e9ef;font-size:14px}
+    button{background:var(--accent);color:#fff;border:none;cursor:pointer}
+    button.ghost{background:transparent;color:var(--accent);border:1px solid #e6e9ef}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:8px;text-align:left;border-bottom:1px solid #f1f3f5;font-size:14px}
+    th{background:#fbfdff;font-weight:600}
+    .small{font-size:13px;color:var(--muted)}
+    .actions button{margin-right:6px}
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:12px}
+    .report-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .stat{padding:12px;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfdff);}
+    .center{text-align:center}
+    .search{display:flex;gap:8px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}.report-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Student Result Management System</h1>
+      <div class="small">Local demo • data kept in browser localStorage</div>
+    </header>
+
+    <div class="grid">
+      <div>
+        <!-- Students -->
+        <div class="card" id="studentsCard">
+          <div class="flex" style="justify-content:space-between">
+            <div><strong>Students</strong><div class="small">Add and manage students</div></div>
+            <div class="search">
+              <input id="studentSearch" placeholder="Search by name or roll" />
+              <button class="ghost" id="clearStudentSearch">Clear</button>
+            </div>
+          </div>
+
+          <form id="studentForm" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <input class="col" placeholder="Full name" id="s_name" required />
+            <input style="width:130px" placeholder="Roll no" id="s_roll" required />
+            <input style="width:120px" placeholder="Class" id="s_class" required />
+            <select id="s_gender" style="width:110px">
+              <option value="">Gender</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
+            <input type="hidden" id="s_id" />
+            <div style="width:100%;display:flex;gap:8px;margin-top:6px">
+              <button id="saveStudent">Save student</button>
+              <button type="button" class="ghost" id="resetStudent">Reset</button>
+            </div>
+          </form>
+
+          <div id="studentsList" style="margin-top:12px"></div>
+        </div>
+
+        <!-- Subjects -->
+        <div class="card" style="margin-top:12px">
+          <div class="flex" style="justify-content:space-between">
+            <div><strong>Subjects</strong><div class="small">Manage subjects</div></div>
+            <div></div>
+          </div>
+          <form id="subjectForm" style="margin-top:12px;display:flex;gap:8px">
+            <input class="col" id="subject_name" placeholder="Subject name (e.g. Mathematics)" required />
+            <input style="width:140px" id="subject_max" placeholder="Max marks (100)" value="100" required />
+            <input type="hidden" id="subject_id" />
+            <div style="display:flex;gap:8px">
+              <button id="saveSubject">Save</button>
+              <button type="button" class="ghost" id="resetSubject">Reset</button>
+            </div>
+          </form>
+          <div id="subjectList" style="margin-top:12px"></div>
+        </div>
+
+        <!-- Results -->
+        <div class="card" style="margin-top:12px">
+          <div><strong>Enter Marks</strong><div class="small">Pick student and put marks per subject</div></div>
+          <form id="resultForm" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <select id="r_student" class="col"></select>
+            <select id="r_subject" style="width:300px"></select>
+            <input id="r_marks" placeholder="Marks" style="width:120px" required />
+            <input type="hidden" id="r_id" />
+            <div style="width:100%;display:flex;gap:8px;margin-top:6px">
+              <button id="saveResult">Save mark</button>
+              <button type="button" class="ghost" id="resetResult">Reset</button>
+            </div>
+          </form>
+
+          <div id="resultsTable" style="margin-top:12px"></div>
+        </div>
+
+      </div>
+
+      <div>
+        <!-- Quick stats + Reports -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><strong>Reports</strong><div class="small">Class performance & export</div></div>
+            <div style="display:flex;gap:8px">
+              <button id="exportCSV" class="ghost">Export CSV</button>
+              <button id="clearData" class="ghost">Clear All</button>
+            </div>
+          </div>
+
+          <div class="report-grid" style="margin-top:12px">
+            <div class="stat center" id="totalStudents">Students: 0</div>
+            <div class="stat center" id="avgPercentage">Avg %: 0</div>
+            <div class="stat center" id="passRate">Pass %: 0</div>
+          </div>
+
+          <div style="margin-top:12px">
+            <h4 style="margin:0 0 8px 0">Top Scorers</h4>
+            <div id="topScorers" class="small"></div>
+          </div>
+
+          <div style="margin-top:12px">
+            <h4 style="margin:0 0 8px 0">Class Summary</h4>
+            <div id="classSummary" class="small"></div>
+          </div>
+        </div>
+
+        <!-- Help -->
+        <div class="card" style="margin-top:12px">
+          <strong>How to use</strong>
+          <ol class="small">
+            <li>Add subjects first (Maths, English...)</li>
+            <li>Add students with roll and class</li>
+            <li>Enter marks per subject for students</li>
+            <li>View reports, export CSV or clear data</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ======= Simple local SRMS using localStorage ======= */
+
+    // Storage helpers
+    const DB = {
+      students: JSON.parse(localStorage.getItem('srms_students')||'[]'),
+      subjects: JSON.parse(localStorage.getItem('srms_subjects')||'[]'),
+      results: JSON.parse(localStorage.getItem('srms_results')||'[]'),
+      save(){
+        localStorage.setItem('srms_students', JSON.stringify(this.students));
+        localStorage.setItem('srms_subjects', JSON.stringify(this.subjects));
+        localStorage.setItem('srms_results', JSON.stringify(this.results));
+      }
+    }
+
+    // Utilities
+    const uid = ()=>crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+    function gradeFromPct(p){
+      if(p>=90) return 'A+';
+      if(p>=80) return 'A';
+      if(p>=70) return 'B';
+      if(p>=60) return 'C';
+      if(p>=50) return 'D';
+      return 'F';
+    }
+
+    // DOM refs
+    const studentsList = document.getElementById('studentsList');
+    const subjectList = document.getElementById('subjectList');
+    const resultsTable = document.getElementById('resultsTable');
+    const r_student = document.getElementById('r_student');
+    const r_subject = document.getElementById('r_subject');
+
+    // forms
+    const studentForm = document.getElementById('studentForm');
+    const subjectForm = document.getElementById('subjectForm');
+    const resultForm = document.getElementById('resultForm');
+
+    // other refs
+    const totalStudents = document.getElementById('totalStudents');
+    const avgPercentage = document.getElementById('avgPercentage');
+    const passRate = document.getElementById('passRate');
+    const topScorers = document.getElementById('topScorers');
+    const classSummary = document.getElementById('classSummary');
+
+    // search
+    document.getElementById('studentSearch').addEventListener('input', renderStudents);
+    document.getElementById('clearStudentSearch').addEventListener('click', ()=>{document.getElementById('studentSearch').value='';renderStudents();});
+
+    // CRUD students
+    studentForm.addEventListener('submit', e=>{
+      e.preventDefault();
+      const id = document.getElementById('s_id').value;
+      const name = document.getElementById('s_name').value.trim();
+      const roll = document.getElementById('s_roll').value.trim();
+      const cls = document.getElementById('s_class').value.trim();
+      const gender = document.getElementById('s_gender').value;
+      if(!name||!roll||!cls) return alert('Please fill name, roll and class');
+      if(id){
+        const s = DB.students.find(x=>x.id===id);
+        Object.assign(s,{name,roll,cls,gender});
+      } else {
+        DB.students.push({id:uid(),name,roll,cls,gender});
+      }
+      DB.save(); resetStudentForm(); renderAll();
+    });
+    document.getElementById('resetStudent').addEventListener('click', resetStudentForm);
+    function resetStudentForm(){ document.getElementById('s_id').value=''; document.getElementById('s_name').value=''; document.getElementById('s_roll').value=''; document.getElementById('s_class').value=''; document.getElementById('s_gender').value=''; }
+
+    function renderStudents(){
+      const q = document.getElementById('studentSearch').value.toLowerCase();
+      const rows = DB.students.filter(s=>(!q)||s.name.toLowerCase().includes(q)||s.roll.toLowerCase().includes(q)).map(s=>{
+        return `<tr>
+          <td>${s.name}<div class="small">Roll: ${s.roll} • Class: ${s.cls}</div></td>
+          <td>${s.gender||'-'}</td>
+          <td class="actions"><button class="ghost" onclick="editStudent('${s.id}')">Edit</button><button class="ghost" onclick="deleteStudent('${s.id}')">Delete</button></td>
+        </tr>`
+      }).join('') || '<tr><td colspan="3" class="small">No students added</td></tr>';
+      studentsList.innerHTML = `<table><thead><tr><th>Name</th><th>Gender</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+
+    window.editStudent = function(id){
+      const s = DB.students.find(x=>x.id===id);
+      document.getElementById('s_id').value=s.id;
+      document.getElementById('s_name').value=s.name;
+      document.getElementById('s_roll').value=s.roll;
+      document.getElementById('s_class').value=s.cls;
+      document.getElementById('s_gender').value=s.gender||'';
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+    window.deleteStudent = function(id){
+      if(!confirm('Delete this student and their results?')) return;
+      DB.students = DB.students.filter(x=>x.id!==id);
+      DB.results = DB.results.filter(r=>r.studentId!==id);
+      DB.save(); renderAll();
+    }
+
+    // Subjects
+    subjectForm.addEventListener('submit', e=>{
+      e.preventDefault();
+      const id = document.getElementById('subject_id').value;
+      const name = document.getElementById('subject_name').value.trim();
+      const max = parseInt(document.getElementById('subject_max').value)||100;
+      if(!name) return alert('Enter subject name');
+      if(id){ const s = DB.subjects.find(x=>x.id===id); Object.assign(s,{name,max}); }
+      else{ DB.subjects.push({id:uid(),name,max}); }
+      DB.save(); resetSubjectForm(); renderAll();
+    });
+    document.getElementById('resetSubject').addEventListener('click', resetSubjectForm);
+    function resetSubjectForm(){ document.getElementById('subject_id').value=''; document.getElementById('subject_name').value=''; document.getElementById('subject_max').value='100'; }
+
+    function renderSubjects(){
+      const rows = DB.subjects.map(s=>`<tr><td>${s.name}</td><td>${s.max}</td><td class="actions"><button class="ghost" onclick="editSubject('${s.id}')">Edit</button><button class="ghost" onclick="deleteSubject('${s.id}')">Delete</button></td></tr>`).join('')||'<tr><td colspan="3" class="small">No subjects</td></tr>';
+      subjectList.innerHTML = `<table><thead><tr><th>Subject</th><th>Max</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table>`;
+
+      // populate result selects
+      r_subject.innerHTML = DB.subjects.map(s=>`<option value="${s.id}">${s.name} (Max ${s.max})</option>`).join('');
+    }
+    window.editSubject = function(id){ const s = DB.subjects.find(x=>x.id===id); document.getElementById('subject_id').value=s.id; document.getElementById('subject_name').value=s.name; document.getElementById('subject_max').value=s.max; }
+    window.deleteSubject = function(id){ if(!confirm('Delete subject and remove related marks?')) return; DB.subjects=DB.subjects.filter(x=>x.id!==id); DB.results=DB.results.filter(r=>r.subjectId!==id); DB.save(); renderAll(); }
+
+    // Results
+    resultForm.addEventListener('submit', e=>{
+      e.preventDefault();
+      const studentId = r_student.value; const subjectId = r_subject.value; const marks = parseFloat(document.getElementById('r_marks').value);
+      if(!studentId||!subjectId||isNaN(marks)) return alert('Select student, subject and enter marks');
+      const subject = DB.subjects.find(s=>s.id===subjectId);
+      const id = document.getElementById('r_id').value;
+      if(marks<0 || marks>subject.max) return alert('Marks must be between 0 and subject max ('+subject.max+')');
+      if(id){ const res = DB.results.find(r=>r.id===id); Object.assign(res,{studentId,subjectId,marks}); }
+      else{ DB.results.push({id:uid(),studentId,subjectId,marks}); }
+      DB.save(); resetResultForm(); renderAll();
+    });
+    document.getElementById('resetResult').addEventListener('click', resetResultForm);
+    function resetResultForm(){ document.getElementById('r_id').value=''; document.getElementById('r_marks').value=''; }
+
+    function renderResults(){
+      if(DB.results.length===0){ resultsTable.innerHTML='<div class="small">No marks recorded</div>'; return; }
+      const rows = DB.results.map(r=>{
+        const s = DB.students.find(x=>x.id===r.studentId) || {name:'Unknown'};
+        const sub = DB.subjects.find(x=>x.id===r.subjectId) || {name:'Unknown',max:100};
+        const pct = (r.marks/sub.max)*100;
+        return `<tr><td>${s.name}<div class="small">Roll: ${s.roll || '-'} • Class: ${s.cls || '-'}</div></td>
+                <td>${sub.name}</td>
+                <td>${r.marks} / ${sub.max}</td>
+                <td>${pct.toFixed(1)}% • ${gradeFromPct(pct)}</td>
+                <td class="actions"><button class="ghost" onclick="editResult('${r.id}')">Edit</button><button class="ghost" onclick="deleteResult('${r.id}')">Delete</button></td>
+                </tr>`
+      }).join('');
+      resultsTable.innerHTML = `<table><thead><tr><th>Student</th><th>Subject</th><th>Marks</th><th>Percentage</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+    window.editResult = function(id){ const r = DB.results.find(x=>x.id===id); document.getElementById('r_id').value=r.id; r_student.value=r.studentId; r_subject.value=r.subjectId; document.getElementById('r_marks').value=r.marks; }
+    window.deleteResult = function(id){ if(!confirm('Delete this mark?')) return; DB.results=DB.results.filter(x=>x.id!==id); DB.save(); renderAll(); }
+
+    // Reports
+    function renderReports(){
+      totalStudents.textContent = 'Students: ' + DB.students.length;
+
+      // build per-student totals
+      const perStudent = DB.students.map(s=>{
+        const res = DB.results.filter(r=>r.studentId===s.id);
+        if(res.length===0) return {student:s, pct:null, total:0};
+        let totalObt=0, totalMax=0;
+        res.forEach(r=>{ const sub = DB.subjects.find(x=>x.id===r.subjectId); totalObt += r.marks; totalMax += (sub?sub.max:100); });
+        const pct = totalMax? (totalObt/totalMax*100):0;
+        return {student:s,total:totalObt,max:totalMax,pct}
+      });
+
+      const valid = perStudent.filter(p=>p.pct!==null);
+      const avg = valid.length? (valid.reduce((a,b)=>a+b.pct,0)/valid.length):0;
+      avgPercentage.textContent = 'Avg %: ' + avg.toFixed(1);
+
+      const passCount = valid.filter(p=>p.pct>=50).length;
+      passRate.textContent = 'Pass %: ' + (valid.length? (passCount/valid.length*100).toFixed(1) : '0');
+
+      // top scorers
+      const sorted = valid.slice().sort((a,b)=>b.pct-a.pct).slice(0,5);
+      topScorers.innerHTML = sorted.length? sorted.map(s=>`<div>${s.student.name} — ${s.pct.toFixed(1)}% (${gradeFromPct(s.pct)})</div>`).join('') : '<div class="small">No completed student records yet</div>';
+
+      // class summary (group by class)
+      const byClass = {};
+      valid.forEach(v=>{ const k=v.student.cls||'Unknown'; if(!byClass[k]) byClass[k]=[]; byClass[k].push(v.pct); });
+      classSummary.innerHTML = Object.keys(byClass).length? Object.keys(byClass).map(c=>{
+        const arr = byClass[c]; const avg = arr.reduce((a,b)=>a+b,0)/arr.length; return `<div><strong>${c}:</strong> Avg ${avg.toFixed(1)}% • Students ${arr.length}</div>`
+      }).join('') : '<div class="small">Not enough data</div>';
+    }
+
+    // Export CSV
+    document.getElementById('exportCSV').addEventListener('click', ()=>{
+      const rows = [];
+      rows.push(['Student Name','Roll','Class','Subject','Marks','Max','Percentage','Grade']);
+      DB.results.forEach(r=>{
+        const s = DB.students.find(x=>x.id===r.studentId) || {};
+        const sub = DB.subjects.find(x=>x.id===r.subjectId) || {max:100};
+        const pct = (r.marks/sub.max)*100;
+        rows.push([s.name||'',s.roll||'',s.cls||'',sub.name||'',r.marks,sub.max,pct.toFixed(1),gradeFromPct(pct)]);
+      });
+      const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""') }"`).join(',')).join('\n');
+      const blob = new Blob([csv],{type:'text/csv'}); const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='srms_export.csv'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    // Clear all
+    document.getElementById('clearData').addEventListener('click', ()=>{
+      if(!confirm('Clear all data from localStorage? This cannot be undone.')) return;
+      DB.students=[]; DB.subjects=[]; DB.results=[]; DB.save(); renderAll();
+    });
+
+    // populate student select
+    function populateStudentSelect(){ r_student.innerHTML = DB.students.map(s=>`<option value="${s.id}">${s.name} — ${s.roll||''} (${s.cls||''})</option>`).join(''); }
+
+    // initial render
+    function renderAll(){ renderStudents(); renderSubjects(); renderResults(); populateStudentSelect(); renderReports(); }
+    renderAll();
+
+    // simple sample data helper for first-time use
+    (function seedIfEmpty(){
+      if(localStorage.getItem('srms_seeded')) return;
+      if(DB.students.length===0 && DB.subjects.length===0){
+        DB.subjects.push({id:uid(),name:'Mathematics',max:100},{id:uid(),name:'English',max:100},{id:uid(),name:'Science',max:100});
+        DB.students.push({id:uid(),name:'Aisha Khan',roll:'S01',cls:'10A'},{id:uid(),name:'Rohan Singh',roll:'S02',cls:'10A'},{id:uid(),name:'Priya Patel',roll:'S03',cls:'10B'});
+        DB.results.push({id:uid(),studentId:DB.students[0].id,subjectId:DB.subjects[0].id,marks:92},{id:uid(),studentId:DB.students[0].id,subjectId:DB.subjects[1].id,marks:88},{id:uid(),studentId:DB.students[1].id,subjectId:DB.subjects[0].id,marks:74},{id:uid(),studentId:DB.students[2].id,subjectId:DB.subjects[2].id,marks:65});
+        DB.save(); localStorage.setItem('srms_seeded','1'); renderAll();
+      }
+    })();
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+/* ======== General Page Styling ======== */
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background-color: #f4f7fb;
+  margin: 0;
+  padding: 0;
+  color: #222;
+}
+
+/* ======== Container ======== */
+.container {
+  width: 90%;
+  max-width: 800px;
+  margin: 30px auto;
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+/* ======== Heading ======== */
+h1 {
+  text-align: center;
+  background-color: #0a9396;
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+/* ======== Navigation Buttons ======== */
+nav {
+  text-align: center;
+  margin: 20px 0;
+}
+
+nav button {
+  background-color: #005f73;
+  color: white;
+  border: none;
+  margin: 5px;
+  padding: 10px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+nav button:hover {
+  background-color: #0a9396;
+}
+
+/* ======== Section Panels ======== */
+.section {
+  display: none;
+  padding: 15px;
+}
+
+.section.active {
+  display: block;
+}
+
+/* ======== Form ======== */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.form input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.form button {
+  background-color: #0077b6;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.form button:hover {
+  background-color: #023e8a;
+}
+
+/* ======== Tables ======== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+}
+
+th {
+  background-color: #0a9396;
+  color: white;
+}
+
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+/* ======== Messages ======== */
+.message {
+  text-align: center;
+  color: #555;
+  font-style: italic;
+  margin-top: 10px;
+}
